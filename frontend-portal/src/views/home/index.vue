@@ -112,7 +112,7 @@
           </div>
           <h3>{{ feature.title }}</h3>
           <p>{{ feature.description }}</p>
-          <a class="feature-link" @click="handleNotImplemented">
+          <a class="feature-link" :title="feature.linkTip" @click="router.push(feature.link)">
             了解更多 <el-icon><Right /></el-icon>
           </a>
         </div>
@@ -213,39 +213,42 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import type { NewsItem, ProductItem } from '@/types'
 
 const router = useRouter()
-
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
-}
 
 const features = ref([
   {
     icon: '💻',
     title: '技术领先',
     description: '采用最新技术栈，确保系统高性能、高可用、易扩展',
-    gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+    gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+    link: '/products#tech',
+    linkTip: '查看我们使用的技术栈'
   },
   {
     icon: '🛡️',
     title: '安全可靠',
     description: '企业级安全防护，多重数据备份，保障业务稳定运行',
-    gradient: 'linear-gradient(135deg, #10b981, #34d399)'
+    gradient: 'linear-gradient(135deg, #10b981, #34d399)',
+    link: '/cases',
+    linkTip: '查看我们交付的成功案例'
   },
   {
     icon: '⚡',
     title: '快速交付',
     description: '敏捷开发流程，高效项目管理，确保按时高质量交付',
-    gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)'
+    gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+    link: '/products#process',
+    linkTip: '了解专业规范的服务流程'
   },
   {
     icon: '🎧',
     title: '专业服务',
     description: '7×24小时技术支持，专属客户经理，全程贴心服务',
-    gradient: 'linear-gradient(135deg, #ec4899, #f472b6)'
+    gradient: 'linear-gradient(135deg, #ec4899, #f472b6)',
+    link: '/contact',
+    linkTip: '联系我们的服务团队'
   }
 ])
 

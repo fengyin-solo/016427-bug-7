@@ -64,8 +64,44 @@
             </div>
             <div class="article-share">
               <span>分享：</span>
-              <a @click="handleNotImplemented"><el-icon :size="18"><Share /></el-icon></a>
-              <a @click="handleNotImplemented"><el-icon :size="18"><ChatDotRound /></el-icon></a>
+              <el-popover
+                placement="top"
+                :width="260"
+                trigger="click"
+                popper-class="share-popover"
+              >
+                <template #reference>
+                  <a title="分享本文" aria-label="分享本文"><el-icon :size="18"><Share /></el-icon></a>
+                </template>
+                <div class="share-panel">
+                  <p class="share-panel__title">分享到</p>
+                  <div class="share-panel__actions">
+                    <button type="button" class="share-option" @click="handleCopyLink">
+                      <el-icon :size="18"><Link /></el-icon>
+                      <span>复制链接</span>
+                    </button>
+                    <button type="button" class="share-option" @click="handleShareWeibo">
+                      <el-icon :size="18"><Share /></el-icon>
+                      <span>分享到微博</span>
+                    </button>
+                  </div>
+                </div>
+              </el-popover>
+              <el-popconfirm
+                width="280"
+                confirm-button-text="去留言"
+                cancel-button-text="再看看"
+                @confirm="router.push('/contact')"
+              >
+                <template #reference>
+                  <a title="参与讨论" aria-label="参与讨论"><el-icon :size="18"><ChatDotRound /></el-icon></a>
+                </template>
+                <template #title>
+                  <div class="discuss-tip">
+                    本站为纯前端演示，未接入评论服务，暂不支持在线讨论。您可前往「联系我们」留言，我们会在第一时间回复。
+                  </div>
+                </template>
+              </el-popconfirm>
             </div>
           </footer>
         </article>
@@ -98,15 +134,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import type { NewsItem } from '@/types'
+import { copyText } from '@/utils/feedback'
 
 const router = useRouter()
 const route = useRoute()
-
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
-}
 
 const newsDetail = ref<NewsItem>({
   id: 1,
@@ -175,6 +207,22 @@ const formatDate = (dateStr: string) => {
 onMounted(() => {
   console.log('News ID:', route.params.id)
 })
+
+// 分享：复制当前文章链接
+const handleCopyLink = async () => {
+  await copyText(window.location.href)
+}
+
+// 分享：跳转微博分享窗口，自动带上文章链接与标题
+const handleShareWeibo = () => {
+  const url = encodeURIComponent(window.location.href)
+  const title = encodeURIComponent(newsDetail.value.title)
+  window.open(
+    `https://service.weibo.com/share/share.php?url=${url}&title=${title}`,
+    '_blank',
+    'noopener,noreferrer,width=640,height=560'
+  )
+}
 </script>
 
 <style lang="scss" scoped>
@@ -340,13 +388,60 @@ onMounted(() => {
       color: $text-color-secondary;
       cursor: pointer;
       transition: all $transition-fast;
-      
+
       &:hover {
         background: $primary-color;
         color: white;
       }
     }
   }
+}
+
+// 分享弹层（el-popover 内容传送至 body，使用全局类）
+:global(.share-popover) {
+  padding: 12px;
+}
+
+.share-panel {
+  &__title {
+    font-size: $font-size-sm;
+    font-weight: 600;
+    color: $text-color-primary;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-sm;
+  }
+}
+
+.share-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: $spacing-sm;
+  border: 1px solid $border-color-light;
+  border-radius: $border-radius-md;
+  background: white;
+  color: $text-color-regular;
+  font-size: $font-size-xs;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    border-color: $primary-color;
+    color: $primary-color;
+    background: rgba($primary-color, 0.04);
+  }
+}
+
+.discuss-tip {
+  font-size: $font-size-sm;
+  line-height: 1.7;
+  color: $text-color-regular;
 }
 
 // ==================== 侧边栏 ====================

@@ -58,9 +58,9 @@
 
         <!-- 文章网格 -->
         <div class="news-grid">
-          <article 
-            v-for="news in filteredNews" 
-            :key="news.id" 
+          <article
+            v-for="news in pagedNews"
+            :key="news.id"
             class="news-card"
             @click="router.push(`/news/${news.id}`)"
           >
@@ -85,15 +85,22 @@
         </div>
 
         <!-- 空状态 -->
-        <div v-if="filteredNews.length === 0" class="empty-state">
+        <div v-if="pagedNews.length === 0" class="empty-state">
           <el-icon :size="64"><Document /></el-icon>
           <h3>暂无相关文章</h3>
           <p>换个关键词试试吧</p>
         </div>
 
-        <!-- 加载更多 -->
-        <div v-if="filteredNews.length > 0" class="load-more">
-          <el-button size="large" round @click="handleNotImplemented">加载更多</el-button>
+        <!-- 加载更多：真实分页；全部展示完后给出明确提示 -->
+        <div v-if="pagedNews.length > 0" class="load-more">
+          <el-button
+            v-if="hasMore"
+            size="large"
+            round
+            :loading="loadingMore"
+            @click="loadMore"
+          >加载更多</el-button>
+          <p v-else class="no-more">已展示全部 {{ filteredNews.length }} 篇文章</p>
         </div>
       </div>
     </section>
@@ -101,19 +108,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
 import type { NewsItem } from '@/types'
 
 const router = useRouter()
 const activeCategory = ref('')
 const searchKeyword = ref('')
 
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
-}
+// 列表为前端静态数据，采用真实的分页加载
+const PAGE_SIZE = 3
+const displayedCount = ref(PAGE_SIZE)
+const loadingMore = ref(false)
 
 const categories = [
   { label: '全部', value: '' },
@@ -215,13 +222,32 @@ const filteredNews = computed(() => {
   
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(item => 
+    result = result.filter(item =>
       item.title.toLowerCase().includes(keyword) ||
       item.summary.toLowerCase().includes(keyword)
     )
   }
-  
+
   return result
+})
+
+// 当前页实际展示的文章
+const pagedNews = computed(() => filteredNews.value.slice(0, displayedCount.value))
+const hasMore = computed(() => displayedCount.value < filteredNews.value.length)
+
+// 加载更多：模拟一次短请求，追加一页数据
+const loadMore = () => {
+  if (!hasMore.value || loadingMore.value) return
+  loadingMore.value = true
+  window.setTimeout(() => {
+    displayedCount.value += PAGE_SIZE
+    loadingMore.value = false
+  }, 400)
+}
+
+// 切换分类或搜索条件后重置分页，保证筛选结果与分页状态一致
+watch([activeCategory, searchKeyword], () => {
+  displayedCount.value = PAGE_SIZE
 })
 
 const formatDate = (dateStr: string) => {
@@ -536,6 +562,11 @@ const formatDate = (dateStr: string) => {
 .load-more {
   text-align: center;
   margin-top: $spacing-3xl;
+
+  .no-more {
+    font-size: $font-size-sm;
+    color: $text-color-secondary;
+  }
 }
 
 // ==================== 响应式 ====================

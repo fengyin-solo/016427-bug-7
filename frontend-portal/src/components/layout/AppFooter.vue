@@ -34,14 +34,22 @@
             专注于企业数字化转型，提供全方位的技术解决方案，助力企业实现智能化升级。
           </p>
           <div class="social-links">
-            <a href="#" class="social-link" aria-label="微信" @click.prevent="handleNotImplemented">
-              <el-icon :size="20"><ChatDotRound /></el-icon>
-            </a>
-            <a href="#" class="social-link" aria-label="微博" @click.prevent="handleNotImplemented">
-              <el-icon :size="20"><Share /></el-icon>
-            </a>
-            <a href="#" class="social-link" aria-label="GitHub" @click.prevent="handleNotImplemented">
-              <el-icon :size="20"><Link /></el-icon>
+            <a
+              v-for="item in siteConfig.social"
+              :key="item.key"
+              class="social-link"
+              :aria-label="item.label"
+              :title="item.label"
+              :href="item.url ?? undefined"
+              :target="item.url ? '_blank' : undefined"
+              rel="noopener noreferrer"
+              @click.prevent="handleSocialClick(item)"
+            >
+              <el-icon :size="20">
+                <ChatDotRound v-if="item.key === 'wechat'" />
+                <Share v-else-if="item.key === 'weibo'" />
+                <Link v-else />
+              </el-icon>
             </a>
           </div>
         </div>
@@ -75,11 +83,16 @@
 
       <!-- 底部版权 -->
       <div class="footer-bottom">
-        <p>© {{ currentYear }} Portal. All rights reserved.</p>
+        <p>© {{ currentYear }} {{ siteConfig.name }}. All rights reserved.</p>
         <div class="footer-legal">
-          <a href="#" @click.prevent="handleNotImplemented">隐私政策</a>
-          <a href="#" @click.prevent="handleNotImplemented">服务条款</a>
-          <a href="#" @click.prevent="handleNotImplemented">京ICP备xxxxxxxx号</a>
+          <router-link to="/privacy">隐私政策</router-link>
+          <router-link to="/terms">服务条款</router-link>
+          <a
+            :href="siteConfig.icp.queryUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="跳转工信部 ICP 备案查询系统（演示站点，备案号为占位信息）"
+          >{{ siteConfig.icp.text }}</a>
         </div>
       </div>
     </div>
@@ -89,13 +102,19 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { siteConfig, type SocialLink } from '@/config/site'
+import { notifyUnavailable } from '@/utils/feedback'
 
 const router = useRouter()
 const currentYear = computed(() => new Date().getFullYear())
 
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
+// 社交入口：已配置地址则新开标签页打开，未配置则说明该渠道的具体情况
+const handleSocialClick = (item: SocialLink) => {
+  if (item.url) {
+    window.open(item.url, '_blank', 'noopener,noreferrer')
+    return
+  }
+  notifyUnavailable(item.unavailableReason)
 }
 </script>
 

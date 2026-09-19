@@ -44,6 +44,18 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '联系我们' }
   },
   {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('@/views/legal/privacy.vue'),
+    meta: { title: '隐私政策' }
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('@/views/legal/terms.vue'),
+    meta: { title: '服务条款' }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/error/404.vue'),
@@ -54,9 +66,17 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(_to, _from, savedPosition) {
+  scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition
+    }
+    // 支持锚点跳转（如 /products#tech），并为吸顶导航预留高度
+    if (to.hash) {
+      return {
+        el: to.hash,
+        top: 80,
+        behavior: 'smooth'
+      }
     }
     return { top: 0 }
   }

@@ -123,8 +123,16 @@
             <p>{{ member.description }}</p>
           </div>
           <div class="team-social">
-            <a @click="handleNotImplemented"><el-icon><Link /></el-icon></a>
-            <a @click="handleNotImplemented"><el-icon><Message /></el-icon></a>
+            <a
+              title="个人主页"
+              :aria-label="`${member.name} 的个人主页`"
+              @click="handleProfile(member)"
+            ><el-icon><Link /></el-icon></a>
+            <a
+              :href="`mailto:${member.email}`"
+              title="发送邮件"
+              :aria-label="`发送邮件给 ${member.name}`"
+            ><el-icon><Message /></el-icon></a>
           </div>
         </div>
       </div>
@@ -157,10 +165,19 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { notifyUnavailable } from '@/utils/feedback'
 
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
+interface TeamMember {
+  name: string
+  position: string
+  avatar: string
+  description: string
+  email: string
+}
+
+// 团队成员暂无独立个人主页，点击主页图标时如实说明，并提供邮件联系方式
+const handleProfile = (member: TeamMember) => {
+  notifyUnavailable(`暂未提供 ${member.name} 的公开个人主页，欢迎通过邮件 ${member.email} 与 TA 取得联系`)
 }
 
 const timeline = ref([
@@ -171,30 +188,34 @@ const timeline = ref([
   { year: '2024', title: '行业领先', description: '荣获年度最佳创新企业奖，客户满意度达98%' }
 ])
 
-const teamMembers = ref([
+const teamMembers = ref<TeamMember[]>([
   {
     name: '张明',
     position: '创始人 & CEO',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face',
-    description: '15年行业经验，曾任职于多家知名科技公司'
+    description: '15年行业经验，曾任职于多家知名科技公司',
+    email: 'zhangming@portal.com'
   },
   {
     name: '李华',
     position: '技术总监',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
-    description: '资深架构师，专注于企业级解决方案设计'
+    description: '资深架构师，专注于企业级解决方案设计',
+    email: 'lihua@portal.com'
   },
   {
     name: '王芳',
     position: '产品总监',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face',
-    description: '10年产品经验，深谙用户需求与市场趋势'
+    description: '10年产品经验，深谙用户需求与市场趋势',
+    email: 'wangfang@portal.com'
   },
   {
     name: '赵强',
     position: '运营总监',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face',
-    description: '擅长品牌建设与市场推广，推动业务持续增长'
+    description: '擅长品牌建设与市场推广，推动业务持续增长',
+    email: 'zhaoqiang@portal.com'
   }
 ])
 </script>

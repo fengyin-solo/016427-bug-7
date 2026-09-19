@@ -45,13 +45,13 @@
           </div>
           <h3>在线客服</h3>
           <p>即时响应</p>
-          <a class="card-link" @click="handleNotImplemented">立即咨询</a>
+          <a class="card-link" @click="scrollToMessageForm">立即咨询</a>
         </div>
       </div>
     </section>
 
     <!-- 表单区域 -->
-    <section class="form-section">
+    <section id="message-form" ref="formSectionRef" class="form-section">
       <div class="form-container">
         <!-- 左侧：大图背景 + 信息覆盖 -->
         <div class="form-visual">
@@ -187,6 +187,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import type { ContactForm } from '@/types'
 
 const formRef = ref<FormInstance>()
+const formSectionRef = ref<HTMLElement>()
 const submitting = ref(false)
 const activeFaq = ref(0)
 
@@ -255,8 +256,16 @@ const handleSubmit = async () => {
   })
 }
 
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
+// 在线客服入口：滚动到页面内的留言表单并聚焦姓名输入框，直接承接咨询
+const scrollToMessageForm = () => {
+  const section = formSectionRef.value
+  if (!section) return
+  const top = section.getBoundingClientRect().top + window.scrollY - 80
+  window.scrollTo({ top, behavior: 'smooth' })
+  window.setTimeout(() => {
+    const firstInput = section.querySelector<HTMLElement>('input')
+    firstInput?.focus()
+  }, 450)
 }
 </script>
 

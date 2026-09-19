@@ -57,7 +57,7 @@
     </section>
 
     <!-- 服务流程 -->
-    <section class="process-section">
+    <section id="process" class="process-section">
       <div class="section-header">
         <span class="section-header__badge">
           <el-icon><SetUp /></el-icon> 服务流程
@@ -80,7 +80,7 @@
     </section>
 
     <!-- 技术栈 -->
-    <section class="tech-section">
+    <section id="tech" class="tech-section">
       <div class="section-header">
         <span class="section-header__badge">
           <el-icon><Cpu /></el-icon> 技术栈
