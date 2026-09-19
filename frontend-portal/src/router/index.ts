@@ -44,6 +44,18 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '联系我们' }
   },
   {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('@/views/legal/index.vue'),
+    meta: { title: '隐私政策', legalKey: 'privacy' }
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('@/views/legal/index.vue'),
+    meta: { title: '服务条款', legalKey: 'terms' }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/error/404.vue'),

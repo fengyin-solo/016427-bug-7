@@ -112,9 +112,9 @@
           </div>
           <h3>{{ feature.title }}</h3>
           <p>{{ feature.description }}</p>
-          <a class="feature-link" @click="handleNotImplemented">
+          <router-link class="feature-link" to="/products">
             了解更多 <el-icon><Right /></el-icon>
-          </a>
+          </router-link>
         </div>
       </div>
     </section>
@@ -213,14 +213,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import type { NewsItem, ProductItem } from '@/types'
 
 const router = useRouter()
-
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
-}
 
 const features = ref([
   {

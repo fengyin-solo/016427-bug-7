@@ -64,8 +64,18 @@
             </div>
             <div class="article-share">
               <span>分享：</span>
-              <a @click="handleNotImplemented"><el-icon :size="18"><Share /></el-icon></a>
-              <a @click="handleNotImplemented"><el-icon :size="18"><ChatDotRound /></el-icon></a>
+              <a
+                href="#"
+                title="分享本文"
+                aria-label="分享本文"
+                @click.prevent="handleShare"
+              ><el-icon :size="18"><Share /></el-icon></a>
+              <a
+                :href="discussMailto"
+                title="通过邮件参与讨论"
+                aria-label="通过邮件参与讨论"
+                @click="handleDiscuss"
+              ><el-icon :size="18"><ChatDotRound /></el-icon></a>
             </div>
           </footer>
         </article>
@@ -96,16 +106,57 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import type { NewsItem } from '@/types'
+import { siteConfig } from '@/config/site'
+import { copyText } from '@/utils/clipboard'
 
 const router = useRouter()
 const route = useRoute()
 
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
+// 分享：优先调用系统/浏览器原生分享，不支持时降级为复制文章链接
+const handleShare = async () => {
+  const shareData = {
+    title: newsDetail.value.title,
+    text: newsDetail.value.summary,
+    url: shareUrl.value
+  }
+
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      await navigator.share(shareData)
+      return
+    } catch {
+      // 用户取消分享时不提示
+      return
+    }
+  }
+
+  const ok = await copyText(shareUrl.value)
+  if (ok) {
+    ElMessage.success('文章链接已复制，快去分享给好友吧')
+  } else {
+    ElMessage.warning('当前浏览器不支持自动复制，请手动复制地址栏链接')
+  }
+}
+
+// 评论系统尚未上线：说明原因，并提供可直接使用的邮件讨论通道
+const handleDiscuss = () => {
+  ElMessageBox.confirm(
+    '文章评论区功能正在建设中，暂无法在线留言。您可以通过邮件与我们交流对本文的看法，点击确认后将打开邮件客户端。',
+    '参与讨论',
+    {
+      confirmButtonText: '写邮件讨论',
+      cancelButtonText: '取消',
+      distinguishCancelAndClose: true
+    }
+  )
+    .then(() => {
+      window.location.href = discussMailto.value
+    })
+    .catch(() => {})
 }
 
 const newsDetail = ref<NewsItem>({
@@ -120,6 +171,14 @@ const newsDetail = ref<NewsItem>({
   publishTime: '2024-03-15',
   createTime: '2024-03-15',
   updateTime: '2024-03-15'
+})
+
+// 文章固定链接：基于当前访问地址，保证从任何页面进入、刷新后分享链接一致
+const shareUrl = computed(() => `${window.location.origin}/news/${newsDetail.value.id}`)
+
+const discussMailto = computed(() => {
+  const subject = `关于文章《${newsDetail.value.title}》的讨论`
+  return `mailto:${siteConfig.contact.email}?subject=${encodeURIComponent(subject)}`
 })
 
 const relatedNews = ref<NewsItem[]>([

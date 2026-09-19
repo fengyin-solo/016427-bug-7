@@ -123,8 +123,19 @@
             <p>{{ member.description }}</p>
           </div>
           <div class="team-social">
-            <a @click="handleNotImplemented"><el-icon><Link /></el-icon></a>
-            <a @click="handleNotImplemented"><el-icon><Message /></el-icon></a>
+            <a
+              :href="member.profileUrl || '#'"
+              target="_blank"
+              rel="noopener noreferrer"
+              :title="member.profileUrl ? `查看${member.name}的个人主页` : '个人主页暂未公开'"
+              :aria-label="`${member.name}的个人主页`"
+              @click.prevent="handleProfile(member)"
+            ><el-icon><Link /></el-icon></a>
+            <a
+              :href="memberMailto(member)"
+              :title="`发送邮件给${member.name}`"
+              :aria-label="`发送邮件给${member.name}`"
+            ><el-icon><Message /></el-icon></a>
           </div>
         </div>
       </div>
@@ -157,10 +168,44 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
+import { siteConfig } from '@/config/site'
 
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
+interface TeamMember {
+  name: string
+  position: string
+  avatar: string
+  description: string
+  // 个人主页链接；为空表示暂未公开
+  profileUrl?: string
+}
+
+// 个人主页已公开则跳转，未公开则说明原因并给出邮件联系方式
+const handleProfile = (member: TeamMember) => {
+  if (member.profileUrl) {
+    window.open(member.profileUrl, '_blank', 'noopener,noreferrer')
+    return
+  }
+
+  ElMessageBox.confirm(
+    `${member.name}暂未在官网公开个人主页。您可以通过邮件与其取得联系，点击确认后将打开邮件客户端。`,
+    '个人主页暂未公开',
+    {
+      confirmButtonText: '发送邮件',
+      cancelButtonText: '关闭',
+      distinguishCancelAndClose: true
+    }
+  )
+    .then(() => {
+      window.location.href = memberMailto(member)
+    })
+    .catch(() => {})
+}
+
+// 团队成员统一使用公司联系邮箱，通过邮件主题区分收件人
+const memberMailto = (member: TeamMember) => {
+  const subject = `请转${member.name}（${member.position}）：来自官网的联系`
+  return `mailto:${siteConfig.contact.email}?subject=${encodeURIComponent(subject)}`
 }
 
 const timeline = ref([
@@ -171,7 +216,7 @@ const timeline = ref([
   { year: '2024', title: '行业领先', description: '荣获年度最佳创新企业奖，客户满意度达98%' }
 ])
 
-const teamMembers = ref([
+const teamMembers = ref<TeamMember[]>([
   {
     name: '张明',
     position: '创始人 & CEO',

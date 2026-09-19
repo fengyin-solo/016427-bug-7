@@ -34,14 +34,16 @@
             专注于企业数字化转型，提供全方位的技术解决方案，助力企业实现智能化升级。
           </p>
           <div class="social-links">
-            <a href="#" class="social-link" aria-label="微信" @click.prevent="handleNotImplemented">
-              <el-icon :size="20"><ChatDotRound /></el-icon>
-            </a>
-            <a href="#" class="social-link" aria-label="微博" @click.prevent="handleNotImplemented">
-              <el-icon :size="20"><Share /></el-icon>
-            </a>
-            <a href="#" class="social-link" aria-label="GitHub" @click.prevent="handleNotImplemented">
-              <el-icon :size="20"><Link /></el-icon>
+            <a
+              v-for="social in siteConfig.socials"
+              :key="social.name"
+              href="#"
+              class="social-link"
+              :aria-label="social.name"
+              :title="social.name"
+              @click.prevent="handleSocialClick(social)"
+            >
+              <el-icon :size="20"><component :is="social.icon" /></el-icon>
             </a>
           </div>
         </div>
@@ -65,10 +67,10 @@
 
           <div class="link-group">
             <h4>联系方式</h4>
-            <a href="tel:400-888-8888">400-888-8888</a>
-            <a href="mailto:hello@portal.com">hello@portal.com</a>
-            <span>北京市朝阳区科技园区</span>
-            <span>工作日 9:00-18:00</span>
+            <a :href="`tel:${siteConfig.contact.phone}`">{{ siteConfig.contact.phone }}</a>
+            <a :href="`mailto:${siteConfig.contact.email}`">{{ siteConfig.contact.email }}</a>
+            <span>{{ siteConfig.contact.address }}</span>
+            <span>{{ siteConfig.contact.workTime }}</span>
           </div>
         </div>
       </div>
@@ -77,9 +79,16 @@
       <div class="footer-bottom">
         <p>© {{ currentYear }} Portal. All rights reserved.</p>
         <div class="footer-legal">
-          <a href="#" @click.prevent="handleNotImplemented">隐私政策</a>
-          <a href="#" @click.prevent="handleNotImplemented">服务条款</a>
-          <a href="#" @click.prevent="handleNotImplemented">京ICP备xxxxxxxx号</a>
+          <router-link to="/privacy">隐私政策</router-link>
+          <router-link to="/terms">服务条款</router-link>
+          <a
+            href="#"
+            class="icp-link"
+            title="点击查看备案说明"
+            @click.prevent="showIcpInfo"
+          >
+            {{ siteConfig.icp.displayText }}
+          </a>
         </div>
       </div>
     </div>
@@ -89,13 +98,58 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { siteConfig, type SocialLink } from '@/config/site'
+import { copyText } from '@/utils/clipboard'
 
 const router = useRouter()
 const currentYear = computed(() => new Date().getFullYear())
 
-const handleNotImplemented = () => {
-  ElMessage.info('功能开发中，敬请期待')
+// 社交入口统一行为：有外链则打开；可复制（公众号）则引导复制；未开通则说明原因
+const handleSocialClick = async (social: SocialLink) => {
+  if (social.url) {
+    window.open(social.url, '_blank', 'noopener,noreferrer')
+    return
+  }
+
+  if (social.copyable) {
+    const { label, value, tip } = social.copyable
+    try {
+      await ElMessageBox.confirm(`${tip} 账号：${value}`, label, {
+        confirmButtonText: `复制${label}`,
+        cancelButtonText: '关闭',
+        distinguishCancelAndClose: true
+      })
+    } catch {
+      return
+    }
+
+    const ok = await copyText(value)
+    if (ok) {
+      ElMessage.success(`${label}已复制：${value}`)
+    } else {
+      ElMessage.warning(`复制失败，请手动记录账号：${value}`)
+    }
+    return
+  }
+
+  ElMessageBox.alert(social.unavailableReason, social.name, {
+    confirmButtonText: '我知道了'
+  }).catch(() => {})
+}
+
+// 备案号尚未下发：展示办理状态与原因，并提供工信部查询入口
+const showIcpInfo = () => {
+  ElMessageBox.alert(
+    `${siteConfig.icp.tip}<br/><br/>` +
+      `<a href="${siteConfig.icp.queryUrl}" target="_blank" rel="noopener noreferrer">` +
+      '前往工信部 ICP/IP 地址/域名信息备案管理系统查询 →</a>',
+    '备案说明',
+    {
+      confirmButtonText: '我知道了',
+      dangerouslyUseHTMLString: true
+    }
+  ).catch(() => {})
 }
 </script>
 
